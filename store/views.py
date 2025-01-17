@@ -3,6 +3,8 @@ from django.http import JsonResponse, HttpResponse, HttpResponseNotFound
 from .models import DATABASE
 from logic.services import filtering_category
 from django.shortcuts import redirect
+from django.contrib.auth import get_user
+from django.contrib.auth.decorators import login_required
 
 def products_view(request):
     if request.method == "GET":
@@ -75,9 +77,11 @@ def products_page_view(request, page):
 from logic.services import view_in_cart, add_to_cart, remove_from_cart
 
 
+@login_required(login_url='login:login_view')
 def cart_view(request):
     if request.method == "GET":
-        data = view_in_cart()
+        current_user = get_user(request).username
+        data = view_in_cart(request)[current_user]
         if request.GET.get('format') == 'JSON':
             return JsonResponse(data, json_dumps_params={'ensure_ascii': False,
                                                          'indent': 4})
@@ -89,10 +93,10 @@ def cart_view(request):
             products.append(product)
         return render(request, "store/cart.html", context={"products": products})
 
-
+@login_required(login_url='login:login_view')
 def cart_add_view(request, id_product):
     if request.method == "GET":
-        result = add_to_cart(id_product) # TODO Вызвать ответственную за это действие функцию и передать необходимые параметры
+        result = add_to_cart(request, id_product) # TODO Вызвать ответственную за это действие функцию и передать необходимые параметры
         if result:
             return JsonResponse({"answer": "Продукт успешно добавлен в корзину"},
                                 json_dumps_params={'ensure_ascii': False})
@@ -104,7 +108,7 @@ def cart_add_view(request, id_product):
 
 def cart_del_view(request, id_product):
     if request.method == "GET":
-        result = remove_from_cart(id_product) # TODO Вызвать ответственную за это действие функцию и передать необходимые параметры
+        result = remove_from_cart(request, id_product) # TODO Вызвать ответственную за это действие функцию и передать необходимые параметры
         if result:
             return JsonResponse({"answer": "Продукт успешно удалён из корзины"},
                                 json_dumps_params={'ensure_ascii': False})
@@ -166,7 +170,8 @@ def delivery_estimate_view(request):
         # else:
         #     return HttpResponseNotFound("Неверные данные")
 
-# @login_required(login_url='login:login_view')
+
+@login_required(login_url='login:login_view')
 def cart_buy_now_view(request, id_product):
     if request.method == "GET":
         result = add_to_cart(request, id_product)
@@ -175,11 +180,11 @@ def cart_buy_now_view(request, id_product):
 
         return HttpResponseNotFound("Неудачное добавление в корзину")
 
-#
-# def cart_remove_view(request, id_product):
-#     if request.method == "GET":
-#         result = remove_from_cart(request, id_product) # TODO Вызвать функцию удаления из корзины
-#         if result:
-#             return redirect('store:cart_view') # TODO Вернуть перенаправление на корзину
-#
-#         return HttpResponseNotFound("Неудачное удаление из корзины")
+
+def cart_remove_view(request, id_product):
+    if request.method == "GET":
+        result = remove_from_cart(request, id_product) # TODO Вызвать функцию удаления из корзины
+        if result:
+            return redirect('store:cart_view') # TODO Вернуть перенаправление на корзину
+
+        return HttpResponseNotFound("Неудачное удаление из корзины")
