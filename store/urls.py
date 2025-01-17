@@ -1,7 +1,9 @@
 # urls.py in store
 
 from django.urls import path
-from .views import products_view, shop_view, products_page_view, cart_view, cart_add_view, cart_del_view, coupon_check_view, delivery_estimate_view, cart_buy_now_view, cart_remove_view
+from .views import (products_view, shop_view, products_page_view, cart_view, cart_add_view,
+                    cart_del_view, coupon_check_view, delivery_estimate_view, cart_buy_now_view,
+                    cart_remove_view)
 
 app_name = 'store'
 
